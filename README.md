@@ -3,7 +3,6 @@
 This guide provides instructions for installing **macOS in a virtual machine on Linux** using **QEMU/KVM** and the **macOS-Simple-KVM** project.
 
 > **⚠️ Important Disclaimer**
->
 > Apple's End User License Agreement (EULA) for macOS restricts its use to Apple-branded hardware. This guide is provided **for educational, testing, and development purposes only**. Always ensure compliance with applicable laws and software licenses.
 
 ---
@@ -48,8 +47,9 @@ Enable virtualization in your BIOS/UEFI if not already enabled.
 ```bash
 sudo apt update
 sudo apt install -y \
-  qemu-system \
+  qemu-system-x86 \
   qemu-kvm \
+  qemu-utils \
   libvirt-daemon-system \
   libvirt-clients \
   virt-manager \
@@ -70,7 +70,6 @@ sudo dnf install -y \
   libvirt-devel \
   virt-top \
   libguestfs-tools \
-  guestfs-tools \
   bridge-utils \
   edk2-ovmf \
   git \
@@ -130,7 +129,7 @@ The project supports several macOS versions. For best compatibility on both Inte
 
 This script downloads the macOS installer directly from Apple's servers. No product key is required.
 
-**Note**: Newer macOS versions may have additional requirements or compatibility issues. Catalina is the most tested option for this setup.
+**Note**: Newer macOS versions (Ventura/Sonoma) may have additional requirements or compatibility issues. Catalina is the most tested option for this setup.
 
 ---
 
@@ -148,7 +147,7 @@ This will:
 
 The default configuration uses:
 
-* 2 GB RAM
+* 2 GB RAM (Note: You should manually increase this to 4GB+ for a stable install)
 * 2 CPU cores
 * QXL graphics adapter
 
@@ -164,13 +163,13 @@ The `make.sh` script creates a small boot disk. You need to add a primary storag
 
 1. Open **virt-manager**
 2. Double-click your macOS VM
-3. Click **Add Hardware**
+3. Click **Add Hardware** (the lightbulb icon)
 4. Select **Storage**
 5. Create a new disk:
 
-   * **Format**: qcow2
-   * **Size**: Minimum 64 GB
-   * **Bus**: SATA (AHCI)
+* **Format**: qcow2
+* **Size**: Minimum 64 GB
+* **Bus**: SATA
 
 ![Storage Configuration](images/Screenshot_2026-01-15_21-08-39.png)
 
@@ -180,20 +179,23 @@ The `make.sh` script creates a small boot disk. You need to add a primary storag
 qemu-img create -f qcow2 macOS.qcow2 64G
 ```
 
-macOS disks must use **SATA (AHCI)**.
+macOS disks must use **SATA (AHCI)**. VirtIO storage is not natively supported during the installation.
 
 ---
 
 ## 7. Install macOS
 
-1. Start the VM
-2. OpenCore boot menu → **macOS Installer**
-3. Open **Disk Utility**
-4. Erase disk:
+1. Start the VM in virt-manager.
+2. At the OpenCore boot menu → Select **macOS Base System**.
+3. Once the utilities load, open **Disk Utility**.
+4. **Crucial:** Click "View" -> "**Show All Devices**" in the top left.
+5. Select your virtual disk (e.g., "QEMU HARDDISK") and click **Erase**:
 
-   * **Format**: APFS
-   * **Scheme**: GUID Partition Map
-5. Install macOS
+* **Name**: Macintosh HD
+* **Format**: APFS
+* **Scheme**: GUID Partition Map
+
+6. Close Disk Utility and select **Install macOS**.
 
 ---
 
@@ -201,15 +203,14 @@ macOS disks must use **SATA (AHCI)**.
 
 ### Correct Device Models for macOS
 
-macOS **does not support VirtIO storage or network drivers**.
+macOS **does not support VirtIO storage or network drivers natively**.
 
-Use the following device models:
+Use the following device models in your VM settings:
 
 * **Storage**: SATA (AHCI)
 * **Network**: `vmxnet3`
-* **Graphics**: `virtio-gpu`
-
-Do **not** install VirtIO driver ISO files inside macOS.
+* **Graphics**: `virtio`
+* **USB Controller**: USB 3.0 (xHCI)
 
 ---
 
@@ -217,31 +218,28 @@ Do **not** install VirtIO driver ISO files inside macOS.
 
 In **virt-manager**:
 
-* Use **Copy host CPU configuration**
-* Do not manually add CPU flags unless required
-
-Manual flags like `+vmx` are Intel-only and may break AMD systems.
+* Use **Copy host CPU configuration**.
+* **Topology**: Recommended 1 Socket, 2 Cores, 2 Threads (4 vCPUs total).
 
 ---
 
 ### Memory
 
-* Increase to at least 4 GB
-* 8 GB recommended
-* Disable memory ballooning
+* Increase to at least **4 GB** (8 GB recommended).
+* Disable memory ballooning as it can cause macOS kernels to panic.
 
 ---
 
 ### Video
 
-* Change from QXL to **virtio**
-* Allocate 128 MB video memory
+* Change from QXL to **virtio**.
+* Allocate 128 MB video memory.
 
 ---
 
 ### Sound
 
-* Change from AC97 to **ich9**
+* Change from AC97 to **ich9**.
 
 ---
 
@@ -249,13 +247,8 @@ Manual flags like `+vmx` are Intel-only and may break AMD systems.
 
 ### Default Configuration
 
-* NAT networking works immediately
-* Use **vmxnet3** as the network device model
-
-### Bridged Networking
-
-* Requires a host bridge
-* Wi-Fi bridging may require additional setup
+* NAT networking works immediately with the **vmxnet3** model.
+* If internet doesn't work, ensure your host has the `dnsmasq` package installed.
 
 ---
 
@@ -263,33 +256,36 @@ Manual flags like `+vmx` are Intel-only and may break AMD systems.
 
 ### Emulated Graphics
 
-* virtio-gpu
-* Software rendering
-* Suitable for development and testing
+* Without a dedicated GPU, macOS uses software rendering.
+* This is suitable for development/testing but will have UI lag.
 
 ### GPU Passthrough
 
-* Requires secondary GPU or iGPU
-* IOMMU enabled
-* Compatible AMD GPUs only
+* Requires a secondary GPU.
+* **AMD GPUs** (RX 480/580/5000/6000) have the best native support.
+* Modern NVIDIA GPUs are not supported.
 
 ---
 
 ## 11. Troubleshooting
 
-### VM Won't Start
+### "This copy of macOS Installer is damaged"
+
+This is usually a date/time error. In the macOS terminal (inside the VM), run:
+
+```bash
+date 010101012024
+```
+
+(This sets the date to Jan 1, 2024).
+
+### VM Won't Start (Permissions)
 
 ```bash
 groups | grep -E '(libvirt|kvm)'
 ```
 
-Log out and back in if groups are missing.
-
-### Slow Installation
-
-* Be patient
-* Use SSD storage
-* Increase RAM
+If your user isn't in these groups, run `sudo usermod -aG libvirt,kvm $(whoami)` and reboot.
 
 ---
 
@@ -297,7 +293,6 @@ Log out and back in if groups are missing.
 
 * [https://github.com/foxlet/macOS-Simple-KVM](https://github.com/foxlet/macOS-Simple-KVM)
 * [https://dortania.github.io/OpenCore-Install-Guide](https://dortania.github.io/OpenCore-Install-Guide)
-* [https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF](https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF)
+* [https://github.com/kholia/OSX-KVM](https://github.com/kholia/OSX-KVM) (Alternative for newer macOS versions)
 
----
 
