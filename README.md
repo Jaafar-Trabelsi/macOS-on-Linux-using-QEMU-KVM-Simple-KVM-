@@ -301,14 +301,3 @@ Log out and back in if groups are missing.
 
 ---
 
-✅ **Images preserved**
-✅ **Errors fixed**
-✅ **Repo-safe**
-
-If you want next:
-
-* a **git diff patch**
-* validation against **Pop!_OS COSMIC**
-* or a **KNOWN ISSUES** add-on without rewording
-
-Just say.
