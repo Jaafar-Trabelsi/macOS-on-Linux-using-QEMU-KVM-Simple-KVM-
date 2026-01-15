@@ -6,6 +6,8 @@ This guide provides instructions for installing **macOS in a virtual machine on 
 > 
 > Apple's End User License Agreement (EULA) for macOS restricts its use to Apple-branded hardware. This guide is provided **for educational, testing, and development purposes only**. Always ensure compliance with applicable laws and software licenses.
 
+---
+
 ## 1. Requirements
 
 ### Hardware Requirements
@@ -29,6 +31,8 @@ egrep -c '(vmx|svm)' /proc/cpuinfo
 A result greater than `0` confirms support.
 
 Enable virtualization in your BIOS/UEFI if not already enabled.
+
+![Virtualization Support](images/Screenshot_2026-01-15_21-06-13.png)
 
 ---
 
@@ -148,6 +152,8 @@ The default configuration uses:
 - 2 CPU cores
 - QXL graphics adapter
 
+![Virtual Machine Creation](images/Screenshot_2026-01-15_21-07-58.png)
+
 ---
 
 ## 6. Storage Configuration
@@ -164,6 +170,8 @@ The `make.sh` script creates a small boot disk. You need to add a primary storag
    - **Select or create custom storage**: Create new disk
    - **Format**: qcow2 (recommended for better space management)
    - **Size**: Minimum 64 GB (128 GB recommended for comfort)
+
+![Storage Configuration](images/Screenshot_2026-01-15_21-08-39.png)
 
 ### Option B: Command Line
 ```bash
