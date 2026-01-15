@@ -157,12 +157,3 @@ This setup is intended for development, testing, and general macOS usage, not fo
   [https://christitus.com](https://christitus.com)
 
 ---
-
-If you want, I can:
-
-* Adjust this for **AMD-only systems**
-* Add a **Troubleshooting** section
-* Convert it into **GitHub Pages documentation**
-* Review it for clarity before publishing
-
-Just tell me what you want next.
