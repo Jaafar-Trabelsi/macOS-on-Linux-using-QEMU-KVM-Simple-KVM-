@@ -6,24 +6,6 @@ This guide provides instructions for installing **macOS in a virtual machine on 
 > 
 > Apple's End User License Agreement (EULA) for macOS restricts its use to Apple-branded hardware. This guide is provided **for educational, testing, and development purposes only**. Always ensure compliance with applicable laws and software licenses.
 
----
-
-## 📋 Table of Contents
-1. [Requirements](#1-requirements)
-2. [Install Dependencies](#2-install-dependencies)
-3. [Clone Repository](#3-clone-the-macos-simple-kvm-repository)
-4. [Download macOS Installer](#4-download-macos-installer)
-5. [Create Virtual Machine](#5-create-the-virtual-machine)
-6. [Storage Configuration](#6-storage-configuration)
-7. [Install macOS](#7-install-macos)
-8. [Post-Installation Setup](#8-post-installation-setup)
-9. [Networking](#9-networking)
-10. [GPU Considerations](#10-gpu-considerations)
-11. [Troubleshooting](#11-troubleshooting)
-12. [References](#12-references)
-
----
-
 ## 1. Requirements
 
 ### Hardware Requirements
